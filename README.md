@@ -21,7 +21,7 @@ A Model Context Protocol (MCP) server implementation in Rust that provides GitHu
 ### Building from Source
 
 ```bash
-git clone https://github.com/yourusername/github-mcp-server.git
+git clone https://github.com/mg3994/github-mcp-server.git
 cd github-mcp-server
 cargo build --release
 ```

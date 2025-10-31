@@ -216,8 +216,7 @@ impl AuthManager {
             "unknown".to_string()
         }
     }
-}
-
+    
     // Authentication error handling methods
     pub async fn validate_token_with_github(&mut self, github_client: &crate::github::GitHubClient) -> Result<User, GitHubMcpError> {
         let token = self.get_token()
@@ -249,27 +248,25 @@ impl AuthManager {
         }
     }
     
-    pub async fn ensure_valid_authentication(&mut self, github_client: &crate::github::GitHubClient) -> Result<&User, GitHubMcpError> {
+    pub async fn ensure_valid_authentication(&mut self, github_client: &crate::github::GitHubClient) -> Result<User, GitHubMcpError> {
         // Check if we have a token
         if !self.is_authenticated() {
             return Err(GitHubMcpError::AuthenticationError("No authentication token provided".to_string()));
         }
         
         // Check if we have cached user info and token is still valid
-        if let Some(user) = self.get_authenticated_user() {
-            if self.is_token_valid() {
+        if self.is_token_valid() {
+            if let Some(user) = self.get_authenticated_user() {
                 debug!("Using cached authentication for user: {}", user.login);
-                return Ok(user);
+                return Ok(user.clone());
             }
         }
         
         // Need to validate token with GitHub
         debug!("Token validation required, checking with GitHub API");
-        self.validate_token_with_github(github_client).await?;
+        let user = self.validate_token_with_github(github_client).await?;
         
-        // Return the authenticated user
-        self.get_authenticated_user()
-            .ok_or_else(|| GitHubMcpError::AuthenticationError("Authentication validation failed".to_string()))
+        Ok(user)
     }
     
     pub fn check_scope_permission(&self, required_scope: &str) -> Result<(), GitHubMcpError> {
@@ -355,6 +352,7 @@ impl AuthManager {
             time_until_expiry,
         }
     }
+}
 
 impl Default for AuthManager {
     fn default() -> Self {
